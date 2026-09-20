@@ -46,5 +46,6 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           TAG: ${{ inputs.tag || github.ref_name }}
         run: |
-          gh release view "$TAG" >/dev/null 2>&1 || gh release create "$TAG" --title "$TAG" --generate-notes
+          gh release view "$TAG" >/dev/null 2>&1 || gh release create "$TAG" \
+            --title "$TAG" --generate-notes --target "$GITHUB_SHA"
           gh release upload "$TAG" build/Release/LSUnusedResources.app.zip --clobber
