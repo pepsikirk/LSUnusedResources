@@ -1,0 +1,50 @@
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Release tag to create, e.g. v1.1
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: macos-26
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Select an Xcode 26 toolchain
+        run: |
+          XCODE_APP=$(ls -d /Applications/Xcode_26*.app 2>/dev/null | sort -V | tail -1)
+          [ -n "$XCODE_APP" ] || { echo "::error::No Xcode 26 on this runner, but the macOS 10.13 deployment target needs it."; exit 1; }
+          sudo xcode-select -s "$XCODE_APP"
+          xcodebuild -version
+
+      - name: Build
+        run: |
+          xcodebuild -project LSUnusedResources.xcodeproj \
+            -target LSUnusedResources -configuration Release \
+            ONLY_ACTIVE_ARCH=NO \
+            SYMROOT="$PWD/build" OBJROOT="$PWD/build/obj" build
+
+      - name: Verify the app is universal and package it
+        run: |
+          BIN="build/Release/LSUnusedResources.app/Contents/MacOS/LSUnusedResources"
+          lipo -info "$BIN"
+          lipo "$BIN" -verify_arch arm64 x86_64
+          cd build/Release
+          ditto -c -k --sequesterRsrc --keepParent LSUnusedResources.app LSUnusedResources.app.zip
+
+      - name: Publish
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ inputs.tag || github.ref_name }}
+        run: |
+          gh release view "$TAG" >/dev/null 2>&1 || gh release create "$TAG" --title "$TAG" --generate-notes
+          gh release upload "$TAG" build/Release/LSUnusedResources.app.zip --clobber

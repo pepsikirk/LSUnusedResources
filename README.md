@@ -53,8 +53,10 @@ UIImage *img2 = [self createImageWithPrefix:@"icon_test" andIndex:index];
 
 ## Installation
 
-* Download: [LSUnusedResources.app.zip](https://github.com/tinymind/LSUnusedResources/raw/master/Release/LSUnusedResources.app.zip)
+* Download `LSUnusedResources.app.zip` from the [latest release](https://github.com/tinymind/LSUnusedResources/releases/latest), or from the copy committed in this repo: [LSUnusedResources.app.zip](https://github.com/tinymind/LSUnusedResources/raw/master/Release/LSUnusedResources.app.zip)
 * Or build and run the project using Xcode.
+
+The app is a universal binary (`arm64` + `x86_64`). It is ad-hoc signed rather than notarized, so on Apple Silicon you may have to clear the quarantine flag before opening it: `xattr -dr com.apple.quarantine LSUnusedResources.app`
 
 ## How it works
 
@@ -64,4 +66,4 @@ UIImage *img2 = [self createImageWithPrefix:@"icon_test" andIndex:index];
 
 ## Requirements
 
-Requires OS X 10.7 and above, ARC.
+Requires macOS 10.13 and above, ARC. Building from source needs a macOS SDK that still accepts the `10.13` deployment target (Xcode 26 or earlier).
